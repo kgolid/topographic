@@ -1,24 +1,30 @@
 import * as tome from 'chromotome';
+import SimplexNoise from 'simplex-noise';
 import { draw_line, draw_poly } from './display';
 
 let sketch = function(p) {
   let THE_SEED;
+  let simplex;
 
-  const dim = 800;
-  const cell_dim = 4;
-  const noise_dim = 0.01;
-  const padding = 50;
-  const canvas_dim = dim + 2 * padding;
   const palette = tome.get('empusa');
 
-  const t_init = 0.2;
+  const dim = 800;
+  const padding = 50;
+  const canvas_dim = dim + 2 * padding;
+
+  const cell_dim = 4;
+  const noise_dim = 0.012;
+  const persistence = 0.25;
+
+  const t_init = -1;
   const t_steps = 20;
-  const t_delta = 0.03;
+  const t_delta = 0.1;
 
   p.setup = function() {
     p.createCanvas(canvas_dim, canvas_dim);
     THE_SEED = p.floor(p.random(9999999));
     p.randomSeed(THE_SEED);
+    simplex = new SimplexNoise(THE_SEED);
 
     p.background(palette.background);
     p.noStroke();
@@ -43,10 +49,10 @@ let sketch = function(p) {
   };
 
   function process_cell(x, y, threshold) {
-    const v1 = p.noise(x * noise_dim, y * noise_dim);
-    const v2 = p.noise((x + 1) * noise_dim, y * noise_dim);
-    const v3 = p.noise((x + 1) * noise_dim, (y + 1) * noise_dim);
-    const v4 = p.noise(x * noise_dim, (y + 1) * noise_dim);
+    const v1 = get_noise(x, y);
+    const v2 = get_noise(x + 1, y);
+    const v3 = get_noise(x + 1, y + 1);
+    const v4 = get_noise(x, y + 1);
 
     const b1 = v1 > threshold ? 8 : 0;
     const b2 = v2 > threshold ? 4 : 0;
@@ -56,6 +62,26 @@ let sketch = function(p) {
     const id = b1 + b2 + b3 + b4;
 
     draw_poly(p, id, v1, v2, v3, v4, threshold, cell_dim);
+  }
+
+  function get_noise(x, y) {
+    return sum_octave(16, x, y, persistence, noise_dim);
+  }
+
+  function sum_octave(num_iterations, x, y, persistence, scale) {
+    let maxAmp = 0;
+    let amp = 1;
+    let freq = scale;
+    let noise = 0;
+
+    for (let i = 0; i < num_iterations; ++i) {
+      noise += simplex.noise2D(x * freq, y * freq) * amp;
+      maxAmp += amp;
+      amp *= persistence;
+      freq *= 2;
+    }
+
+    return noise / maxAmp;
   }
 
   p.keyPressed = function() {
