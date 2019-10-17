@@ -13,7 +13,7 @@
   "license": "ISC",
   "browser": "dist/index.js",
   "dependencies": {
-    "chromotome": "^1.12.0",
+    "chromotome": "^1.13.0",
     "simplex-noise": "^2.4.0"
   },
   "devDependencies": {
