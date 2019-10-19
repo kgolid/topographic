@@ -1241,9 +1241,104 @@
     }
   }
 
+  function draw_poly(p, id, v1, v2, v3, v4, threshold, dim) {
+    const n = [p.map(threshold, v1, v2, 0, dim), 0];
+    const e = [dim, p.map(threshold, v2, v3, 0, dim)];
+    const s = [p.map(threshold, v4, v3, 0, dim), dim];
+    const w = [0, p.map(threshold, v1, v4, 0, dim)];
+    const nw = [0, 0];
+    const ne = [dim, 0];
+    const se = [dim, dim];
+    const sw = [0, dim];
+
+    p.noStroke();
+    p.beginShape();
+    if (id === 1) {
+      p.vertex(...s);
+      p.vertex(...w);
+      p.vertex(...sw);
+    } else if (id === 2) {
+      p.vertex(...e);
+      p.vertex(...s);
+      p.vertex(...se);
+    } else if (id === 3) {
+      p.vertex(...e);
+      p.vertex(...w);
+      p.vertex(...sw);
+      p.vertex(...se);
+    } else if (id === 4) {
+      p.vertex(...n);
+      p.vertex(...e);
+      p.vertex(...ne);
+    } else if (id === 5) {
+      p.vertex(...e);
+      p.vertex(...s);
+      p.vertex(...sw);
+      p.vertex(...w);
+      p.vertex(...n);
+      p.vertex(...ne);
+    } else if (id === 6) {
+      p.vertex(...n);
+      p.vertex(...s);
+      p.vertex(...se);
+      p.vertex(...ne);
+    } else if (id === 7) {
+      p.vertex(...w);
+      p.vertex(...n);
+      p.vertex(...ne);
+      p.vertex(...se);
+      p.vertex(...sw);
+    } else if (id === 15) {
+      p.vertex(...nw);
+      p.vertex(...ne);
+      p.vertex(...se);
+      p.vertex(...sw);
+    } else if (id === 14) {
+      p.vertex(...s);
+      p.vertex(...w);
+      p.vertex(...nw);
+      p.vertex(...ne);
+      p.vertex(...se);
+    } else if (id === 13) {
+      p.vertex(...e);
+      p.vertex(...s);
+      p.vertex(...sw);
+      p.vertex(...nw);
+      p.vertex(...ne);
+    } else if (id === 12) {
+      p.vertex(...e);
+      p.vertex(...w);
+      p.vertex(...nw);
+      p.vertex(...ne);
+    } else if (id === 11) {
+      p.vertex(...n);
+      p.vertex(...e);
+      p.vertex(...se);
+      p.vertex(...sw);
+      p.vertex(...nw);
+    } else if (id === 10) {
+      p.vertex(...e);
+      p.vertex(...se);
+      p.vertex(...s);
+      p.vertex(...w);
+      p.vertex(...nw);
+      p.vertex(...n);
+    } else if (id === 9) {
+      p.vertex(...n);
+      p.vertex(...s);
+      p.vertex(...sw);
+      p.vertex(...nw);
+    } else if (id === 8) {
+      p.vertex(...w);
+      p.vertex(...n);
+      p.vertex(...nw);
+    }
+    p.endShape(p.CLOSE);
+  }
+
   function draw_grid(p, dim, num) {
     const spacing = dim / num;
-    p.stroke(0, 100);
+    p.stroke(0, 70);
     for (let i = 0; i <= num; i++) {
       p.line(i * spacing, 0, i * spacing, dim);
       p.line(0, i * spacing, dim, i * spacing);
@@ -1254,7 +1349,6 @@
     let THE_SEED;
     let simplex;
     let noise_grid;
-    let thresholds = [];
 
     const palette = get('tsu_akasaka');
 
@@ -1267,10 +1361,6 @@
     const noise_dim = 0.0025;
     const persistence = 0.45;
 
-    const t_init = 0.2;
-    const t_steps = 120;
-    const t_delta = 0.8 / t_steps;
-
     p.setup = function() {
       p.createCanvas(canvas_dim, canvas_dim);
       THE_SEED = p.floor(p.random(9999999));
@@ -1278,27 +1368,33 @@
       p.randomSeed(THE_SEED);
 
       noise_grid = build_noise_grid();
-      thresholds = build_threshold_list();
 
       p.background(palette.background);
       p.translate(padding, padding);
+
+      draw_grid(p, grid_dim, 12);
+      process_grid(0.3, 10, 0.7 / 10, ['#d4a710']);
+      process_grid(-1, 120, 1.3 / 120, []);
+    };
+
+    function process_grid(init, steps, delta, fill_palette) {
+      const thresholds = build_threshold_list(init, steps, delta, fill_palette);
+      const filled = fill_palette.length !== 0;
 
       p.push();
       for (let y = 0; y < n; y++) {
         p.push();
         for (let x = 0; x < n; x++) {
-          process_cell(x, y);
+          process_cell(x, y, filled, thresholds, delta);
           p.translate(cell_dim, 0);
         }
         p.pop();
         p.translate(0, cell_dim);
       }
       p.pop();
+    }
 
-      draw_grid(p, grid_dim, 12);
-    };
-
-    function process_cell(x, y) {
+    function process_cell(x, y, filled, thresholds, delta) {
       const v1 = get_noise(x, y);
       const v2 = get_noise(x + 1, y);
       const v3 = get_noise(x + 1, y + 1);
@@ -1307,9 +1403,7 @@
       // Some optimization
       const min = p.min([v1, v2, v3, v4]);
       const max = p.max([v1, v2, v3, v4]);
-      const relevant_thresholds = thresholds.filter(
-        t => t.val >= min - t_delta && t.val <= max
-      );
+      const relevant_thresholds = thresholds.filter(t => t.val >= min - delta && t.val <= max);
 
       for (const t of relevant_thresholds) {
         const b1 = v1 > t.val ? 8 : 0;
@@ -1319,10 +1413,13 @@
 
         const id = b1 + b2 + b3 + b4;
 
-        //p.fill(t.col);
-        //draw_poly(p, id, v1, v2, v3, v4, t.val, cell_dim);
-        p.stroke(palette.stroke);
-        draw_line(p, id, v1, v2, v3, v4, t.val, cell_dim);
+        if (filled) {
+          p.fill(t.col);
+          draw_poly(p, id, v1, v2, v3, v4, t.val, cell_dim);
+        } else {
+          p.stroke(palette.stroke ? palette.stroke : '#111');
+          draw_line(p, id, v1, v2, v3, v4, t.val, cell_dim);
+        }
       }
     }
 
@@ -1342,11 +1439,11 @@
       return grid;
     }
 
-    function build_threshold_list() {
+    function build_threshold_list(init, steps, delta, colors) {
       let thresholds = [];
-      for (let t = 0; t <= t_steps; t++) {
-        let col = palette.colors[p.floor(p.random(palette.size))];
-        thresholds.push({ val: t_init + t * t_delta, col: col });
+      for (let t = 0; t <= steps; t++) {
+        let col = colors.length === 0 ? '#fff' : colors[p.floor(p.random(colors.length))];
+        thresholds.push({ val: init + t * delta, col: col });
       }
       return thresholds;
     }

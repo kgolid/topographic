@@ -6,7 +6,6 @@ let sketch = function(p) {
   let THE_SEED;
   let simplex;
   let noise_grid;
-  let thresholds = [];
 
   const palette = tome.get('tsu_akasaka');
 
@@ -19,10 +18,6 @@ let sketch = function(p) {
   const noise_dim = 0.0025;
   const persistence = 0.45;
 
-  const t_init = 0.2;
-  const t_steps = 120;
-  const t_delta = 0.8 / t_steps;
-
   p.setup = function() {
     p.createCanvas(canvas_dim, canvas_dim);
     THE_SEED = p.floor(p.random(9999999));
@@ -30,27 +25,33 @@ let sketch = function(p) {
     p.randomSeed(THE_SEED);
 
     noise_grid = build_noise_grid();
-    thresholds = build_threshold_list();
 
     p.background(palette.background);
     p.translate(padding, padding);
+
+    draw_grid(p, grid_dim, 12);
+    process_grid(0.3, 10, 0.7 / 10, ['#d4a710']);
+    process_grid(-1, 120, 1.3 / 120, []);
+  };
+
+  function process_grid(init, steps, delta, fill_palette) {
+    const thresholds = build_threshold_list(init, steps, delta, fill_palette);
+    const filled = fill_palette.length !== 0;
 
     p.push();
     for (let y = 0; y < n; y++) {
       p.push();
       for (let x = 0; x < n; x++) {
-        process_cell(x, y);
+        process_cell(x, y, filled, thresholds, delta);
         p.translate(cell_dim, 0);
       }
       p.pop();
       p.translate(0, cell_dim);
     }
     p.pop();
+  }
 
-    draw_grid(p, grid_dim, 12);
-  };
-
-  function process_cell(x, y) {
+  function process_cell(x, y, filled, thresholds, delta) {
     const v1 = get_noise(x, y);
     const v2 = get_noise(x + 1, y);
     const v3 = get_noise(x + 1, y + 1);
@@ -59,9 +60,7 @@ let sketch = function(p) {
     // Some optimization
     const min = p.min([v1, v2, v3, v4]);
     const max = p.max([v1, v2, v3, v4]);
-    const relevant_thresholds = thresholds.filter(
-      t => t.val >= min - t_delta && t.val <= max
-    );
+    const relevant_thresholds = thresholds.filter(t => t.val >= min - delta && t.val <= max);
 
     for (const t of relevant_thresholds) {
       const b1 = v1 > t.val ? 8 : 0;
@@ -71,10 +70,13 @@ let sketch = function(p) {
 
       const id = b1 + b2 + b3 + b4;
 
-      //p.fill(t.col);
-      //draw_poly(p, id, v1, v2, v3, v4, t.val, cell_dim);
-      p.stroke(palette.stroke);
-      draw_line(p, id, v1, v2, v3, v4, t.val, cell_dim);
+      if (filled) {
+        p.fill(t.col);
+        draw_poly(p, id, v1, v2, v3, v4, t.val, cell_dim);
+      } else {
+        p.stroke(palette.stroke ? palette.stroke : '#111');
+        draw_line(p, id, v1, v2, v3, v4, t.val, cell_dim);
+      }
     }
   }
 
@@ -94,11 +96,11 @@ let sketch = function(p) {
     return grid;
   }
 
-  function build_threshold_list() {
+  function build_threshold_list(init, steps, delta, colors) {
     let thresholds = [];
-    for (let t = 0; t <= t_steps; t++) {
-      let col = palette.colors[p.floor(p.random(palette.size))];
-      thresholds.push({ val: t_init + t * t_delta, col: col });
+    for (let t = 0; t <= steps; t++) {
+      let col = colors.length === 0 ? '#fff' : colors[p.floor(p.random(colors.length))];
+      thresholds.push({ val: init + t * delta, col: col });
     }
     return thresholds;
   }

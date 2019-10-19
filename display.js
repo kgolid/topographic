@@ -113,7 +113,7 @@ export function draw_poly(p, id, v1, v2, v3, v4, threshold, dim) {
 
 export function draw_grid(p, dim, num) {
   const spacing = dim / num;
-  p.stroke(0, 100);
+  p.stroke(0, 70);
   for (let i = 0; i <= num; i++) {
     p.line(i * spacing, 0, i * spacing, dim);
     p.line(0, i * spacing, dim, i * spacing);
