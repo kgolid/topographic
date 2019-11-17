@@ -113,22 +113,34 @@
       background: '#f7f4ef'
     },
     {
-      name: 'tokyo',
-      colors: ['#d13821', '#1d295b', '#51587d', '#e7e7e7'],
-      stroke: '#0b0e3e',
-      background: '#c7b09e'
-    },
-    {
-      name: 'bauhaus01',
-      colors: ['#ea542f', '#f19c1b', '#4f8ba9'],
+      name: 'sprague',
+      colors: ['#ec2f28', '#f8cd28', '#1e95bb', '#fbaab3', '#fcefdf'],
       stroke: '#221e1f',
-      background: '#e7dbc4'
+      background: '#fcefdf'
     },
     {
-      name: 'bauhaus02',
-      colors: ['#bb2f2a', '#e9b500', '#0165b7'],
-      stroke: '#000000',
-      background: '#e5d6b8'
+      name: 'bloomberg',
+      colors: ['#ff5500', '#f4c145', '#144714', '#2f04fc', '#e276af'],
+      stroke: '#000',
+      background: '#fff3dd'
+    },
+    {
+      name: 'revolucion',
+      colors: ['#ed555d', '#fffcc9', '#41b797', '#eda126', '#7b5770'],
+      stroke: '#fffcc9',
+      background: '#2d1922'
+    },
+    {
+      name: 'sneaker',
+      colors: ['#e8165b', '#401e38', '#66c3b4', '#ee7724', '#584098'],
+      stroke: '#401e38',
+      background: '#ffffff'
+    },
+    {
+      name: 'miradors',
+      colors: ['#ff6936', '#fddc3f', '#0075ca', '#00bb70'],
+      stroke: '#ffffff',
+      background: '#020202'
     }
   ];
 
@@ -718,6 +730,39 @@
     }
   ];
 
+  var jung = [
+    {
+      name: 'jung_bird',
+      colors: ['#fc3032', '#fed530', '#33c3fb', '#ff7bac', '#fda929'],
+      stroke: '#000000',
+      background: '#ffffff'
+    },
+    {
+      name: 'jung_horse',
+      colors: ['#e72e81', '#f0bf36', '#3056a2'],
+      stroke: '#000000',
+      background: '#ffffff'
+    },
+    {
+      name: 'jung_croc',
+      colors: ['#f13274', '#eed03e', '#405e7f', '#19a198'],
+      stroke: '#000000',
+      background: '#ffffff'
+    },
+    {
+      name: 'jung_hippo',
+      colors: ['#ff7bac', '#ff921e', '#3ea8f5', '#7ac943'],
+      stroke: '#000000',
+      background: '#ffffff'
+    },
+    {
+      name: 'jung_wolf',
+      colors: ['#e51c39', '#f1b844', '#36c4b7', '#666666'],
+      stroke: '#000000',
+      background: '#ffffff'
+    }
+  ];
+
   const pals = misc.concat(
     ranganath,
     roygbivs,
@@ -731,7 +776,8 @@
     tsuchimochi,
     duotone,
     hilda,
-    spatial
+    spatial,
+    jung
   );
 
   var palettes = pals.map(p => {
@@ -1403,7 +1449,9 @@
       // Some optimization
       const min = p.min([v1, v2, v3, v4]);
       const max = p.max([v1, v2, v3, v4]);
-      const relevant_thresholds = thresholds.filter(t => t.val >= min - delta && t.val <= max);
+      const relevant_thresholds = thresholds.filter(
+        t => t.val >= min - delta && t.val <= max
+      );
 
       for (const t of relevant_thresholds) {
         const b1 = v1 > t.val ? 8 : 0;

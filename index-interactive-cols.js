@@ -1,3 +1,4 @@
+import * as dat from 'dat.gui';
 import * as tome from 'chromotome';
 import SimplexNoise from 'simplex-noise';
 import { draw_line, draw_poly, draw_grid } from './display';
@@ -7,7 +8,8 @@ let sketch = function(p) {
   let simplex;
   let noise_grid;
 
-  const palette = tome.get('tsu_akasaka');
+  let gui_opts;
+  let palette;
 
   const grid_dim = 800;
   const padding = 80;
@@ -15,24 +17,57 @@ let sketch = function(p) {
   const cell_dim = 2;
   const n = grid_dim / cell_dim;
 
-  const noise_dim = 0.0025;
-  const persistence = 0.45;
-
   p.setup = function() {
     p.createCanvas(canvas_dim, canvas_dim);
-    THE_SEED = p.floor(p.random(9999999));
-    simplex = new SimplexNoise(THE_SEED);
-    p.randomSeed(THE_SEED);
 
+    gui_opts = {
+      noise_scale: 400,
+      noise_persistence: 0.3,
+      apply_sigmoid: 0,
+      palette: 'sprague',
+      line_density: 40,
+      full_reset: () => reset(true),
+      partial_reset: () => reset(false)
+    };
+
+    const gui = new dat.GUI();
+    gui.width = 300;
+    const f1 = gui.addFolder('Noise field');
+    f1.add(gui_opts, 'noise_scale', 100, 1000, 50).name('Noise scale');
+    f1.add(gui_opts, 'noise_persistence', 0.1, 0.6, 0.05).name('Noise persistence');
+    f1.add(gui_opts, 'apply_sigmoid', 0, 10, 1).name('Sigmoid intensity');
+    f1.open();
+
+    const f2 = gui.addFolder('Style');
+    f2.add(gui_opts, 'palette', tome.getNames());
+    f2.add(gui_opts, 'line_density', 5, 100, 5).name('Line density');
+    f2.open();
+
+    gui.add(gui_opts, 'partial_reset').name('Redraw');
+    gui.add(gui_opts, 'full_reset').name('New noise + redraw');
+
+    reset(true);
+  };
+
+  function reset(new_seed) {
+    if (new_seed) {
+      THE_SEED = p.floor(p.random(9999999));
+      simplex = new SimplexNoise(THE_SEED);
+      p.randomSeed(THE_SEED);
+    }
+
+    palette = tome.get(gui_opts.palette);
     noise_grid = build_noise_grid();
+    draw(gui_opts);
+  }
 
+  function draw(opts) {
+    p.push();
     p.background(palette.background);
     p.translate(padding, padding);
-
-    draw_grid(p, grid_dim, 12);
-    process_grid(0.3, 10, 0.7 / 10, ['#d4a710']);
-    process_grid(-1, 120, 1.3 / 120, []);
-  };
+    process_grid(-1, 2 * opts.line_density, 1 / opts.line_density, palette.colors);
+    p.pop();
+  }
 
   function process_grid(init, steps, delta, fill_palette) {
     const thresholds = build_threshold_list(init, steps, delta, fill_palette);
@@ -75,9 +110,6 @@ let sketch = function(p) {
       if (filled) {
         p.fill(t.col);
         draw_poly(p, id, v1, v2, v3, v4, t.val, cell_dim);
-      } else {
-        p.stroke(palette.stroke ? palette.stroke : '#111');
-        draw_line(p, id, v1, v2, v3, v4, t.val, cell_dim);
       }
     }
   }
@@ -87,7 +119,7 @@ let sketch = function(p) {
   }
 
   function build_noise_grid() {
-    let grid = [];
+    const grid = [];
     for (let y = 0; y < n + 1; y++) {
       let row = [];
       for (let x = 0; x < n + 1; x++) {
@@ -99,7 +131,7 @@ let sketch = function(p) {
   }
 
   function build_threshold_list(init, steps, delta, colors) {
-    let thresholds = [];
+    const thresholds = [];
     for (let t = 0; t <= steps; t++) {
       let col = colors.length === 0 ? '#fff' : colors[p.floor(p.random(colors.length))];
       thresholds.push({ val: init + t * delta, col: col });
@@ -111,15 +143,24 @@ let sketch = function(p) {
     let noise = 0;
     let maxAmp = 0;
     let amp = 1;
-    let freq = noise_dim;
+    let freq = 1 / gui_opts.noise_scale;
 
     for (let i = 0; i < num_iterations; i++) {
-      noise += simplex.noise2D(14.3 + x * freq, 5.71 + y * freq) * amp;
+      noise += simplex.noise3D(x * freq, y * freq, i) * amp;
       maxAmp += amp;
-      amp *= persistence;
+      amp *= gui_opts.noise_persistence;
       freq *= 2;
     }
-    return noise / maxAmp;
+    var output = apply_sigmoid(noise / maxAmp, gui_opts.apply_sigmoid);
+    return output;
+  }
+  function apply_sigmoid(value, intensity) {
+    if (intensity === 0) return value;
+    return 2 * sigmoid(value * intensity) - 1;
+  }
+
+  function sigmoid(x) {
+    return 1 / (1 + p.exp(-x));
   }
 
   p.keyPressed = function() {

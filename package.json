@@ -11,8 +11,11 @@
   "author": "Kjetil Golid",
   "license": "ISC",
   "browser": "dist/index.js",
+  "browser_interactive": "dist/index-interactive.js",
+  "browser_interactive_cols": "dist/index-interactive-cols.js",
   "dependencies": {
-    "chromotome": "^1.13.0",
+    "chromotome": "^1.15.5",
+    "dat.gui": "^0.7.6",
     "simplex-noise": "^2.4.0"
   },
   "devDependencies": {

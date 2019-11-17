@@ -10,5 +10,21 @@ export default [
       format: 'umd'
     },
     plugins: [resolve(), commonjs()]
+  },
+  {
+    input: 'index-interactive.js',
+    output: {
+      file: pkg.browser_interactive,
+      format: 'umd'
+    },
+    plugins: [resolve(), commonjs()]
+  },
+  {
+    input: 'index-interactive-cols.js',
+    output: {
+      file: pkg.browser_interactive_cols,
+      format: 'umd'
+    },
+    plugins: [resolve(), commonjs()]
   }
 ];
