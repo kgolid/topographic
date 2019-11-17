@@ -3884,7 +3884,7 @@
         noise_scale: 400,
         noise_persistence: 0.3,
         apply_sigmoid: 0,
-        palette: 'sprague',
+        palette: 'empusa',
         line_density: 40,
         full_reset: () => reset(true),
         partial_reset: () => reset(false)
@@ -3923,7 +3923,7 @@
 
     function draw(opts) {
       p.push();
-      p.background(palette.background);
+      p.background(palette.background ? palette.background : '#f5f5f5');
       p.translate(padding, padding);
       process_grid(-1, 2 * opts.line_density, 1 / opts.line_density, palette.colors);
       p.pop();
