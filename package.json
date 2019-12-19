@@ -14,7 +14,8 @@
   "browser_interactive": "dist/index-interactive.js",
   "browser_interactive_cols": "dist/index-interactive-cols.js",
   "dependencies": {
-    "chromotome": "^1.15.5",
+    "bekk-chromotome": "^1.0.2",
+    "chromotome": "^1.15.6",
     "dat.gui": "^0.7.6",
     "simplex-noise": "^2.4.0"
   },
