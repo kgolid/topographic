@@ -11,6 +11,8 @@
   "author": "Kjetil Golid",
   "license": "ISC",
   "browser": "dist/index.js",
+  "browser_img": "dist/index-img.js",
+  "browser_pattern": "dist/index-pattern.js",
   "browser_interactive": "dist/index-interactive.js",
   "browser_interactive_cols": "dist/index-interactive-cols.js",
   "dependencies": {

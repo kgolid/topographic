@@ -26,5 +26,21 @@ export default [
       format: 'umd'
     },
     plugins: [resolve(), commonjs()]
+  },
+  {
+    input: 'index-pattern.js',
+    output: {
+      file: pkg.browser_pattern,
+      format: 'umd'
+    },
+    plugins: [resolve(), commonjs()]
+  },
+  {
+    input: 'index-img.js',
+    output: {
+      file: pkg.browser_img,
+      format: 'umd'
+    },
+    plugins: [resolve(), commonjs()]
   }
 ];
