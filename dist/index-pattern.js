@@ -3929,7 +3929,7 @@
 
     let tick;
 
-    const grid_dim_x = 900;
+    const grid_dim_x = 1300;
     const grid_dim_y = 900;
     const padding = 50;
     const canvas_dim_x = grid_dim_x + 2 * padding;
@@ -3940,6 +3940,7 @@
 
     p.setup = function() {
       p.createCanvas(canvas_dim_x, canvas_dim_y);
+      p.frameRate(5);
 
       opts = {
         noise_scale: 50,
@@ -3948,8 +3949,8 @@
         num_shapes: 20,
         bottom_size: -0.1,
         top_size: 0.5,
-        palette: 'oracle',
-        reset: () => reset()
+        gradient: 'fill',
+        palette: 'delphi'
       };
 
       const gui$$1 = new GUI$1();
@@ -3960,21 +3961,20 @@
       f1.add(opts, 'num_shapes', 5, 50, 5).name('Layers');
       f1.add(opts, 'bottom_size', -1, 1, 0.1).name('Bottom threshold');
       f1.add(opts, 'top_size', -1, 1, 0.1).name('Top threshold');
+      f1.add(opts, 'gradient', ['fill', 'radial', 'linear']).name('Gradient');
       f1.open();
 
       const f2 = gui$$1.addFolder('Style');
       f2.add(opts, 'palette', getNames());
       f2.open();
 
-      gui$$1.add(opts, 'reset').name('Generate new');
-
-      reset(true);
+      reset();
     };
 
     function reset() {
       palette = get$1(opts.palette);
       tick = 0;
-      p.loop();
+      //p.loop();
     }
 
     p.draw = function() {
@@ -3984,22 +3984,23 @@
       if (tick === 0) {
         p.background(palette.background ? palette.background : '#f5f5f5');
         p.fill(palette.colors[0]);
-        p.rect(0, 0, grid_dim_x, grid_dim_y);
+        //p.rect(0, 0, grid_dim_x, grid_dim_y);
+      }
+      if (tick < opts.num_shapes) {
+        const range = opts.top_size - opts.bottom_size;
+        const z_val = opts.bottom_size + (range * tick) / opts.num_shapes;
+
+        simplex = new simplexNoise();
+        noise_grid = build_noise_grid(opts.gradient);
+        process_grid(tick, z_val, palette.colors);
+        p.pop();
       }
 
-      const range = opts.top_size - opts.bottom_size;
-      const z_val = opts.bottom_size + (range * tick) / opts.num_shapes;
-      process_grid(tick, z_val, palette.colors);
-      p.pop();
-
       tick++;
-      if (tick === opts.num_shapes) p.noLoop();
+      if (tick === opts.num_shapes + 5) reset();
     };
 
     function process_grid(t, z_val, cols) {
-      simplex = new simplexNoise();
-      noise_grid = build_noise_grid();
-
       p.push();
       for (let y = 0; y < ny; y++) {
         p.push();
@@ -4036,10 +4037,19 @@
       return noise_grid[y][x];
     }
 
-    function build_noise_grid() {
+    function build_noise_grid(gradient) {
       return [...Array(ny + 1)].map((_, y) =>
-        [...Array(nx + 1)].map((_, x) => sum_octave(16, x, y))
+        [...Array(nx + 1)].map((_, x) => sum_octave(16, x, y) + get_offset(gradient, x, y))
       );
+    }
+
+    function get_offset(gradient, x, y) {
+      if (gradient === 'fill') return 0;
+      if (gradient === 'linear') return y / nx - 0.5;
+      if (gradient === 'radial')
+        return (
+          0.2 - Math.sqrt(Math.pow(nx / 2 - x, 2) + Math.pow(ny / 2 - y, 2)) / (nx / 2)
+        );
     }
 
     function sum_octave(num_iterations, x, y) {
