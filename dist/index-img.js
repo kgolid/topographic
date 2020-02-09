@@ -2503,10 +2503,6 @@
       name: 'frozen-rose',
       colors: ['#29368f', '#e9697b', '#1b164d', '#f7d996'],
       background: '#f2e8e4'
-    },{
-      name: 'oracle',
-      colors: ['#475b62', '#7a999c', '#2a1f1d', '#fbaf3c', '#df4a33', '#f0e0c6', '#af592c'],
-      background: '#f0e0c6'
     },
     {
       name: 'winter-night',
@@ -2638,6 +2634,12 @@
       colors: ['#BCAA8C', '#D8CDBE', '#484A42', '#746B58', '#9A8C73'],
       stroke: '#000',
       background: '#fff'
+    },
+    {
+      name: 'delphi',
+      colors: ['#475b62', '#7a999c', '#2a1f1d', '#fbaf3c', '#df4a33', '#f0e0c6', '#af592c'],
+      stroke: '#2a1f1d',
+      background: '#f0e0c6'
     }
   ];
 
