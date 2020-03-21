@@ -13,9 +13,9 @@ let sketch = function(p) {
 
   let tick;
 
-  const grid_dim_x = 1300;
-  const grid_dim_y = 900;
-  const padding = 50;
+  const grid_dim_x = 1100;
+  const grid_dim_y = 1100;
+  const padding = 0;
   const canvas_dim_x = grid_dim_x + 2 * padding;
   const canvas_dim_y = grid_dim_y + 2 * padding;
   const cell_dim = 5;
@@ -154,7 +154,7 @@ let sketch = function(p) {
   }
 
   p.keyPressed = function() {
-    if (p.keyCode === 80) p.saveCanvas('sketch_' + THE_SEED, 'jpeg');
+    if (p.keyCode === 80) p.saveCanvas('topollock', 'jpeg');
   };
 };
 new p5(sketch);
