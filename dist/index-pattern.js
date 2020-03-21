@@ -2640,6 +2640,27 @@
       colors: ['#475b62', '#7a999c', '#2a1f1d', '#fbaf3c', '#df4a33', '#f0e0c6', '#af592c'],
       stroke: '#2a1f1d',
       background: '#f0e0c6'
+    },
+    {
+      name: 'mably',
+      colors: [
+        '#13477b',
+        '#2f1b10',
+        '#d18529',
+        '#d72a25',
+        '#e42184',
+        '#138898',
+        '#9d2787',
+        '#7f311b'
+      ],
+      stroke: '#2a1f1d',
+      background: '#dfc792'
+    },
+    {
+      name: 'nowak',
+      colors: ['#e85b30', '#ef9e28', '#c6ac71', '#e0c191', '#3f6279', '#ee854e', '#180305'],
+      stroke: '#180305',
+      background: '#ede4cb'
     }
   ];
 
@@ -3920,7 +3941,6 @@
   }
 
   let sketch = function(p) {
-    let THE_SEED;
     let simplex;
     let noise_grid;
 
@@ -3929,9 +3949,9 @@
 
     let tick;
 
-    const grid_dim_x = 1300;
-    const grid_dim_y = 900;
-    const padding = 50;
+    const grid_dim_x = 1100;
+    const grid_dim_y = 1100;
+    const padding = 0;
     const canvas_dim_x = grid_dim_x + 2 * padding;
     const canvas_dim_y = grid_dim_y + 2 * padding;
     const cell_dim = 5;
@@ -3949,7 +3969,7 @@
         num_shapes: 20,
         bottom_size: -0.1,
         top_size: 0.5,
-        gradient: 'fill',
+        gradient: 'radial',
         palette: 'delphi'
       };
 
@@ -3961,7 +3981,7 @@
       f1.add(opts, 'num_shapes', 5, 50, 5).name('Layers');
       f1.add(opts, 'bottom_size', -1, 1, 0.1).name('Bottom threshold');
       f1.add(opts, 'top_size', -1, 1, 0.1).name('Top threshold');
-      f1.add(opts, 'gradient', ['fill', 'radial', 'linear']).name('Gradient');
+      f1.add(opts, 'gradient', ['fill', 'linear', 'radial', 'ring']).name('Gradient');
       f1.open();
 
       const f2 = gui$$1.addFolder('Style');
@@ -3973,8 +3993,8 @@
 
     function reset() {
       palette = get$1(opts.palette);
+      palette.colors = p.shuffle(palette.colors);
       tick = 0;
-      //p.loop();
     }
 
     p.draw = function() {
@@ -3983,16 +4003,16 @@
 
       if (tick === 0) {
         p.background(palette.background ? palette.background : '#f5f5f5');
-        p.fill(palette.colors[0]);
-        //p.rect(0, 0, grid_dim_x, grid_dim_y);
       }
       if (tick < opts.num_shapes) {
         const range = opts.top_size - opts.bottom_size;
         const z_val = opts.bottom_size + (range * tick) / opts.num_shapes;
+        const col = palette.colors[tick % palette.colors.length];
 
         simplex = new simplexNoise();
         noise_grid = build_noise_grid(opts.gradient);
-        process_grid(tick, z_val, palette.colors);
+        p.fill(col);
+        process_grid(z_val);
         p.pop();
       }
 
@@ -4000,12 +4020,12 @@
       if (tick === opts.num_shapes + 5) reset();
     };
 
-    function process_grid(t, z_val, cols) {
+    function process_grid(z_val) {
       p.push();
       for (let y = 0; y < ny; y++) {
         p.push();
         for (let x = 0; x < nx; x++) {
-          process_cell(x, y, z_val, cols[t % cols.length]);
+          process_cell(x, y, z_val);
           p.translate(cell_dim, 0);
         }
         p.pop();
@@ -4014,7 +4034,7 @@
       p.pop();
     }
 
-    function process_cell(x, y, threshold, col) {
+    function process_cell(x, y, threshold) {
       const v1 = get_noise(x, y);
       const v2 = get_noise(x + 1, y);
       const v3 = get_noise(x + 1, y + 1);
@@ -4029,7 +4049,6 @@
 
       if (id === 0) return;
 
-      p.fill(col);
       draw_poly(p, id, v1, v2, v3, v4, threshold, cell_dim);
     }
 
@@ -4046,10 +4065,12 @@
     function get_offset(gradient, x, y) {
       if (gradient === 'fill') return 0;
       if (gradient === 'linear') return y / nx - 0.5;
-      if (gradient === 'radial')
-        return (
-          0.2 - Math.sqrt(Math.pow(nx / 2 - x, 2) + Math.pow(ny / 2 - y, 2)) / (nx / 2)
-        );
+      if (gradient === 'radial') return 0.2 - distance_from_centre(x, y) / (nx / 2);
+      if (gradient === 'ring') return -Math.abs(-1 + distance_from_centre(x, y) / (nx / 4));
+    }
+
+    function distance_from_centre(x, y) {
+      return Math.sqrt(Math.pow(nx / 2 - x, 2) + Math.pow(ny / 2 - y, 2));
     }
 
     function sum_octave(num_iterations, x, y) {
@@ -4069,7 +4090,7 @@
     }
 
     p.keyPressed = function() {
-      if (p.keyCode === 80) p.saveCanvas('sketch_' + THE_SEED, 'jpeg');
+      if (p.keyCode === 80) p.saveCanvas('topollock', 'jpeg');
     };
   };
   new p5(sketch);
