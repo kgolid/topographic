@@ -33,7 +33,7 @@ let sketch = function(p) {
       num_shapes: 20,
       bottom_size: -0.1,
       top_size: 0.5,
-      gradient: 'fill',
+      gradient: 'radial',
       palette: 'delphi'
     };
 
@@ -45,7 +45,7 @@ let sketch = function(p) {
     f1.add(opts, 'num_shapes', 5, 50, 5).name('Layers');
     f1.add(opts, 'bottom_size', -1, 1, 0.1).name('Bottom threshold');
     f1.add(opts, 'top_size', -1, 1, 0.1).name('Top threshold');
-    f1.add(opts, 'gradient', ['fill', 'radial', 'linear']).name('Gradient');
+    f1.add(opts, 'gradient', ['fill', 'linear', 'radial', 'ring']).name('Gradient');
     f1.open();
 
     const f2 = gui.addFolder('Style');
@@ -129,10 +129,12 @@ let sketch = function(p) {
   function get_offset(gradient, x, y) {
     if (gradient === 'fill') return 0;
     if (gradient === 'linear') return y / nx - 0.5;
-    if (gradient === 'radial')
-      return (
-        0.2 - Math.sqrt(Math.pow(nx / 2 - x, 2) + Math.pow(ny / 2 - y, 2)) / (nx / 2)
-      );
+    if (gradient === 'radial') return 0.2 - distance_from_centre(x, y) / (nx / 2);
+    if (gradient === 'ring') return -Math.abs(-1 + distance_from_centre(x, y) / (nx / 4));
+  }
+
+  function distance_from_centre(x, y) {
+    return Math.sqrt(Math.pow(nx / 2 - x, 2) + Math.pow(ny / 2 - y, 2));
   }
 
   function sum_octave(num_iterations, x, y) {
