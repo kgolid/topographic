@@ -57,8 +57,8 @@ let sketch = function(p) {
 
   function reset() {
     palette = tome.get(opts.palette);
+    palette.colors = p.shuffle(palette.colors);
     tick = 0;
-    //p.loop();
   }
 
   p.draw = function() {
@@ -67,16 +67,16 @@ let sketch = function(p) {
 
     if (tick === 0) {
       p.background(palette.background ? palette.background : '#f5f5f5');
-      p.fill(palette.colors[0]);
-      //p.rect(0, 0, grid_dim_x, grid_dim_y);
     }
     if (tick < opts.num_shapes) {
       const range = opts.top_size - opts.bottom_size;
       const z_val = opts.bottom_size + (range * tick) / opts.num_shapes;
+      const col = palette.colors[tick % palette.colors.length];
 
       simplex = new SimplexNoise();
       noise_grid = build_noise_grid(opts.gradient);
-      process_grid(tick, z_val, palette.colors);
+      p.fill(col);
+      process_grid(z_val);
       p.pop();
     }
 
@@ -84,12 +84,12 @@ let sketch = function(p) {
     if (tick === opts.num_shapes + 5) reset();
   };
 
-  function process_grid(t, z_val, cols) {
+  function process_grid(z_val) {
     p.push();
     for (let y = 0; y < ny; y++) {
       p.push();
       for (let x = 0; x < nx; x++) {
-        process_cell(x, y, z_val, cols[t % cols.length]);
+        process_cell(x, y, z_val);
         p.translate(cell_dim, 0);
       }
       p.pop();
@@ -98,7 +98,7 @@ let sketch = function(p) {
     p.pop();
   }
 
-  function process_cell(x, y, threshold, col) {
+  function process_cell(x, y, threshold) {
     const v1 = get_noise(x, y);
     const v2 = get_noise(x + 1, y);
     const v3 = get_noise(x + 1, y + 1);
@@ -113,7 +113,6 @@ let sketch = function(p) {
 
     if (id === 0) return;
 
-    p.fill(col);
     draw_poly(p, id, v1, v2, v3, v4, threshold, cell_dim);
   }
 
