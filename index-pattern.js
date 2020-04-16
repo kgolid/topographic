@@ -4,7 +4,6 @@ import SimplexNoise from 'simplex-noise';
 import { draw_poly } from './display';
 
 let sketch = function(p) {
-  let THE_SEED;
   let simplex;
   let noise_grid;
 

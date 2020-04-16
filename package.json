@@ -18,8 +18,8 @@
   "browser_interactive_cols": "dist/index-interactive-cols.js",
   "dependencies": {
     "bekk-chromotome": "^1.0.2",
-    "chromotome": "^1.16.3",
-    "dat.gui": "^0.7.6",
+    "chromotome": "^1.17.1",
+    "dat.gui": "^0.7.7",
     "poisson-disk-sampling": "^2.2.0",
     "simplex-noise": "^2.4.0"
   },

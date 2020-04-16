@@ -22,7 +22,7 @@ let sketch = function(p) {
   const n = grid_dim / cell_dim;
 
   p.preload = function() {
-    img = p.loadImage('./godel.jpg');
+    img = p.loadImage('./eye.jpg');
   };
 
   p.setup = function() {
