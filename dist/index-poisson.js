@@ -4836,30 +4836,29 @@
     let opts;
     let palette;
 
-    const grid_dim_x = 800;
-    const grid_dim_y = 800;
+    const canvas_dim_x = 1000;
+    const canvas_dim_y = 1000;
 
-    const nx = Math.floor(grid_dim_x / 20);
-    const ny = Math.floor(grid_dim_y / 20);
-
+    let padding;
+    let grid_dim_x, grid_dim_y;
+    let nx, ny;
     let cell_dim;
 
     p.setup = function () {
-      p.createCanvas(grid_dim_x, grid_dim_y);
-      //p.noLoop();
+      p.createCanvas(canvas_dim_x, canvas_dim_y);
       p.frameRate(0.5);
 
       opts = {
-        noise_scale: 30,
+        noise_scale: 40,
         noise_persistence: 0.3,
         baseline: 0.5,
         center_magnitude: 2,
-        cell_dim: 4,
-        min_dist: 120,
-        tries: 15,
-        palette: 'nowak',
+        cell_dim: 3,
+        padding: 160,
+        min_dist: 110,
+        tries: 10,
+        palette: 'jupiter',
         shadow: true,
-        run: () => reset(),
       };
 
       const gui$$1 = new GUI$1();
@@ -4867,19 +4866,24 @@
       const f1 = gui$$1.addFolder('Noise field');
       f1.add(opts, 'noise_scale', 5, 100, 10).name('Noise scale');
       f1.add(opts, 'noise_persistence', 0.1, 1, 0.05).name('Noise persistence');
-      f1.add(opts, 'baseline', 0, 1, 0.05).name('Baseline');
-      f1.add(opts, 'center_magnitude', 0.75, 4, 0.25).name('Center magnitude');
-      f1.add(opts, 'cell_dim', 1, 10, 0.5).name('Zoom level');
-      f1.add(opts, 'min_dist', 10, 150, 10).name('Min distance');
-      f1.add(opts, 'tries', 1, 20, 2).name('Tries');
       f1.open();
 
-      const f2 = gui$$1.addFolder('Style');
-      f2.add(opts, 'palette', getNames());
-      f2.add(opts, 'shadow').name('Shadow');
+      const f2 = gui$$1.addFolder('Shape');
+      f2.add(opts, 'baseline', 0, 1, 0.05).name('Cutoff height');
+      f2.add(opts, 'center_magnitude', 0.75, 4, 0.25).name('Center magnitude');
+      f2.add(opts, 'cell_dim', 1, 10, 1).name('Zoom level');
       f2.open();
 
-      gui$$1.add(opts, 'run');
+      const f3 = gui$$1.addFolder('Sampling');
+      f3.add(opts, 'padding', 0, 300, 20).name('Canvas padding');
+      f3.add(opts, 'min_dist', 10, 150, 10).name('Min distance');
+      f3.add(opts, 'tries', 1, 20, 2).name('Tries');
+      f3.open();
+
+      const f4 = gui$$1.addFolder('Style');
+      f4.add(opts, 'palette', getNames());
+      f4.add(opts, 'shadow').name('Shadow');
+      f4.open();
 
       reset();
     };
@@ -4891,6 +4895,13 @@
     function reset() {
       palette = get$1(opts.palette);
 
+      cell_dim = opts.cell_dim;
+      padding = opts.padding;
+      grid_dim_x = canvas_dim_x - 2 * padding;
+      grid_dim_y = canvas_dim_y - 2 * padding;
+      nx = Math.floor(canvas_dim_x / 20);
+      ny = Math.floor(canvas_dim_y / 20);
+
       sampling = new poissonDiskSampling({
         shape: [grid_dim_x, grid_dim_y],
         minDistance: opts.min_dist,
@@ -4898,34 +4909,33 @@
       });
       points = sampling.fill();
 
-      cell_dim = opts.cell_dim;
       display();
     }
 
     function display() {
       p.push();
+      p.translate(padding, padding);
       p.translate((-nx * cell_dim) / 2, (-ny * cell_dim) / 2);
       p.background(palette.background ? palette.background : '#f5f5f5');
-      for (let t = 0; t < 1; t++) {
-        for (let i = 0; i < points.length; i++) {
-          simplex = new simplexNoise();
-          const pnt = points[i];
-          const col = palette.colors[Math.floor(Math.random() * palette.colors.length)];
+      for (let i = 0; i < points.length; i++) {
+        simplex = new simplexNoise();
+        const pnt = points[i];
+        const col = palette.colors[Math.floor(Math.random() * palette.colors.length)];
 
-          noise_grid = build_noise_grid(opts.baseline, opts.center_magnitude);
+        noise_grid = build_noise_grid(opts.baseline, opts.center_magnitude);
 
-          p.push();
-          p.translate(Math.floor(pnt[0]), Math.floor(pnt[1]));
-          if (opts.shadow) {
-            p.fill(palette.stroke);
-            process_grid();
-            p.translate(5, -10);
-          }
-          p.fill(col);
+        p.push();
+        p.translate(Math.floor(pnt[0]), Math.floor(pnt[1]));
+
+        if (opts.shadow) {
+          p.fill(palette.stroke ? palette.stroke : '#000');
           process_grid();
-          //p.ellipse((cell_dim * nx) / 2, (cell_dim * ny) / 2, 10, 10);
-          p.pop();
+          p.translate(5, -10);
         }
+
+        p.fill(col);
+        process_grid();
+        p.pop();
       }
       p.pop();
     }
