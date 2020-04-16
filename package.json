@@ -13,12 +13,14 @@
   "browser": "dist/index.js",
   "browser_img": "dist/index-img.js",
   "browser_pattern": "dist/index-pattern.js",
+  "browser_poisson": "dist/index-poisson.js",
   "browser_interactive": "dist/index-interactive.js",
   "browser_interactive_cols": "dist/index-interactive-cols.js",
   "dependencies": {
     "bekk-chromotome": "^1.0.2",
     "chromotome": "^1.16.3",
     "dat.gui": "^0.7.6",
+    "poisson-disk-sampling": "^2.2.0",
     "simplex-noise": "^2.4.0"
   },
   "devDependencies": {

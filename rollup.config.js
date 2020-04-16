@@ -36,6 +36,14 @@ export default [
     plugins: [resolve(), commonjs()]
   },
   {
+    input: 'index-poisson.js',
+    output: {
+      file: pkg.browser_poisson,
+      format: 'umd'
+    },
+    plugins: [resolve(), commonjs()]
+  },
+  {
     input: 'index-img.js',
     output: {
       file: pkg.browser_img,
