@@ -185,7 +185,7 @@
       return obj === false || obj === true;
     },
     isFunction: function isFunction(obj) {
-      return Object.prototype.toString.call(obj) === '[object Function]';
+      return obj instanceof Function;
     }
   };
 
@@ -683,8 +683,9 @@
   });
   Object.defineProperty(Color.prototype, 'hex', {
     get: function get$$1() {
-      if (!this.__state.space !== 'HEX') {
+      if (this.__state.space !== 'HEX') {
         this.__state.hex = ColorMath.rgb_to_hex(this.r, this.g, this.b);
+        this.__state.space = 'HEX';
       }
       return this.__state.hex;
     },
@@ -3086,43 +3087,37 @@
     p.endShape(p.CLOSE);
   }
 
-  function draw_grid(p, dim, num) {
-    const spacing = dim / num;
-    p.stroke(0, 70);
-    for (let i = 0; i <= num; i++) {
-      p.line(i * spacing, 0, i * spacing, dim);
-      p.line(0, i * spacing, dim, i * spacing);
-    }
-  }
-
-  let sketch = function(p) {
+  let sketch = function (p) {
     let THE_SEED;
     let simplex;
     let noise_grid;
 
     let gui_opts;
 
-    const grid_dim = 800;
-    const padding = 80;
-    const canvas_dim = grid_dim + 2 * padding;
+    const grid_dim_x = 1300;
+    const grid_dim_y = 900;
+    const padding = 40;
+    const canvas_dim_x = grid_dim_x + 2 * padding;
+    const canvas_dim_y = grid_dim_y + 2 * padding;
     const cell_dim = 2;
-    const n = grid_dim / cell_dim;
+    const nx = grid_dim_x / cell_dim;
+    const ny = grid_dim_y / cell_dim;
 
-    p.setup = function() {
-      p.createCanvas(canvas_dim, canvas_dim);
+    p.setup = function () {
+      p.createCanvas(canvas_dim_x, canvas_dim_y);
+      p.pixelDensity(4);
 
       gui_opts = {
-        noise_scale: 400,
-        noise_persistence: 0.45,
-        apply_sigmoid: 0,
-        color: '#d4a710',
-        bg_color: '#cfc7b9',
+        noise_scale: 350,
+        noise_persistence: 0.55,
+        apply_sigmoid: 9,
+        color: '#ffc70b',
+        bg_color: '#ffffff',
         stroke_weight: 1,
-        show_grid: true,
-        line_density: 80,
+        line_density: 15,
         range: 0.5,
         full_reset: () => reset(true),
-        partial_reset: () => reset(false)
+        partial_reset: () => reset(false),
       };
 
       const gui$$1 = new GUI$1();
@@ -3134,12 +3129,11 @@
       f1.open();
 
       const f2 = gui$$1.addFolder('Style');
-      f2.add(gui_opts, 'line_density', 10, 200, 10).name('Line density');
+      f2.add(gui_opts, 'line_density', 5, 30, 5).name('Line density');
       f2.add(gui_opts, 'range', 0, 1, 0.05).name('Land/ocean ratio');
       f2.addColor(gui_opts, 'color').name('Ocean color');
       f2.addColor(gui_opts, 'bg_color').name('Background color');
       f2.add(gui_opts, 'stroke_weight', 1, 5, 1).name('Stroke Weight');
-      f2.add(gui_opts, 'show_grid').name('Show grid');
       f2.open();
 
       gui$$1.add(gui_opts, 'partial_reset').name('Redraw');
@@ -3166,8 +3160,8 @@
       p.push();
       p.background(opts.bg_color);
       p.translate(padding, padding);
-      if (opts.show_grid) draw_grid(p, grid_dim, 12);
       process_grid(-1 + ratio, 1, 2 - ratio, [opts.color]);
+      // process_grid(-1 + ratio + 0.2, 1, 2 - ratio - 0.2, [opts.color]);
       process_grid(-1, number_of_lines, 1 / opts.line_density, []);
       p.pop();
     }
@@ -3177,9 +3171,9 @@
       const filled = fill_palette.length !== 0;
 
       p.push();
-      for (let y = 0; y < n; y++) {
+      for (let y = 0; y < ny; y++) {
         p.push();
-        for (let x = 0; x < n; x++) {
+        for (let x = 0; x < nx; x++) {
           process_cell(x, y, filled, thresholds, delta);
           p.translate(cell_dim, 0);
         }
@@ -3199,7 +3193,7 @@
       const min = p.min([v1, v2, v3, v4]);
       const max = p.max([v1, v2, v3, v4]);
       const relevant_thresholds = thresholds.filter(
-        t => t.val >= min - delta && t.val <= max
+        (t) => t.val >= min - delta && t.val <= max
       );
 
       for (const t of relevant_thresholds) {
@@ -3227,9 +3221,9 @@
 
     function build_noise_grid() {
       const grid = [];
-      for (let y = 0; y < n + 1; y++) {
+      for (let y = 0; y < ny + 1; y++) {
         let row = [];
-        for (let x = 0; x < n + 1; x++) {
+        for (let x = 0; x < nx + 1; x++) {
           row.push(sum_octave(16, x, y));
         }
         grid.push(row);
@@ -3270,7 +3264,7 @@
       return 1 / (1 + p.exp(-x));
     }
 
-    p.keyPressed = function() {
+    p.keyPressed = function () {
       if (p.keyCode === 80) p.saveCanvas('sketch_' + THE_SEED, 'jpeg');
     };
   };
