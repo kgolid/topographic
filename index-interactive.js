@@ -107,9 +107,7 @@ let sketch = function (p) {
     // Some optimization
     const min = p.min([v1, v2, v3, v4]);
     const max = p.max([v1, v2, v3, v4]);
-    const relevant_thresholds = thresholds.filter(
-      (t) => t.val >= min - delta && t.val <= max
-    );
+    const relevant_thresholds = thresholds.filter((t) => t.val >= min - delta && t.val <= max);
 
     for (const t of relevant_thresholds) {
       const b1 = v1 > t.val ? 8 : 0;
